@@ -96,11 +96,12 @@ def convert_to_RFC_datetime(year=1900, month=1, day=1, hour=0, minute=0):
     return dt
 
 
+# Insert the reservation in the google sheet
 def insertion(reservation):
     """
     :param reservation: liste [nom, pnom, date, numvelo, etat_reservation, datetime]
     :return: void
-    place la réservation dans le spreasheet sdp
+    put the reservation into the spreadsheet SDP
     """
     request_data = sheet.get_all_values()
     LastLineNumber = len(request_data) + 1
@@ -108,7 +109,13 @@ def insertion(reservation):
     sheet.sort((3, 'des'))
 
 
+# Remove the reservation from the google sheet
 def ejection(reservation):
+    """
+    :param reservation: liste [nom, pnom, date, numvelo, etat_reservation, datetime]
+    :return: Bool
+    put the reservation into the spreadsheet SDP
+    """
     request_data = sheet.get_all_values()
     df = pd.DataFrame(request_data)
     df.columns = ['Nom', 'Prénom', 'date', 'datetime', 'bike_Num']
@@ -124,6 +131,7 @@ def ejection(reservation):
     return flag
 
 
+# Check if bikes are available given a date
 def available(date):
     request_data = sheet.get_all_values()
     df = pd.DataFrame(request_data)
@@ -163,6 +171,7 @@ def ajout_photo(img, img_name):
 
 
 def get_code(bike_Num):
+
     request_data = code_sheet.get_all_values()
     df = pd.DataFrame(request_data)
     df.columns = ['Bike_Code']
