@@ -1,6 +1,3 @@
-"""
-
-"""
 
 # Import required libraries
 from flask import Flask, redirect, url_for, render_template, request
@@ -64,17 +61,23 @@ def Create_Service(client_secret_file, api_name, api_version, *scopes):
         print(e)
     return None
 
+
+# Global variable
 images_file_id = '1J6Cbzo3L4ZELWl-I4cQxOH93nqGSmvA5'
 
 Nombre_velo = 11
 
+# Define the required scope for Google Sheets and Google Drive APIs
 scope = ['https://www.googleapis.com/auth/spreadsheets', "https://www.googleapis.com/auth/drive.file",
          "https://www.googleapis.com/auth/drive"]
 
+# Create credentials using the service account JSON key file
 creds = ServiceAccountCredentials.from_json_keyfile_name('secret_sheet.json', scope)
 
+# Authorize the client with the credentials
 client = gspread.authorize(creds)
 
+# Open the Google Sheets named 'SDP_Test' and 'SDP_Code'
 sheet = client.open('SDP_Test').sheet1
 code_sheet = client.open('SDP_Code').sheet1
 
@@ -84,6 +87,7 @@ API_NAME = 'drive'
 API_VERSION = 'v3'
 SCOPES = ["https://www.googleapis.com/auth/drive"]
 
+# Create a Google Drive API service
 service = Create_Service(Client_secret, API_NAME, API_VERSION, SCOPES)
 
 
@@ -105,7 +109,6 @@ def insertion(reservation):
 
 
 def ejection(reservation):
-
     request_data = sheet.get_all_values()
     df = pd.DataFrame(request_data)
     df.columns = ['Nom', 'Prénom', 'date', 'datetime', 'bike_Num']
@@ -113,7 +116,7 @@ def ejection(reservation):
 
     for i in df.index:
         if [df['Nom'][i], df['Prénom'][i], df['date'][i], df['bike_Num'][i]] == reservation[0:4]:
-            LineNumber = i+1
+            LineNumber = i + 1
             sheet.delete_rows(LineNumber)
             flag = True
 
@@ -122,31 +125,28 @@ def ejection(reservation):
 
 
 def available(date):
-
     request_data = sheet.get_all_values()
     df = pd.DataFrame(request_data)
-    if len(df) == 0 :
+    if len(df) == 0:
         return True, 1
     df.columns = ['Nom', 'Prénom', 'date', 'datetime', 'bike_Num']
     N = 0
-    bike_avail = [i for i in range(1,11)]
+    bike_avail = [i for i in range(1, 11)]
     for i in df.index:
-        if df['date'][i] == date :
+        if df['date'][i] == date:
             N += 1
             bike_avail.remove(int(df['bike_Num'][i]))
-        if N == Nombre_velo :
+        if N == Nombre_velo:
             return False, -1
     return True, bike_avail[0]
 
 
 def render_picture(data):
-
     render_pic = base64.b64encode(data).decode('ascii')
     return render_pic
 
 
 def ajout_photo(img, img_name):
-
     file_name = img_name
 
     file_meta = {
@@ -163,7 +163,6 @@ def ajout_photo(img, img_name):
 
 
 def get_code(bike_Num):
-
     request_data = code_sheet.get_all_values()
     df = pd.DataFrame(request_data)
     df.columns = ['Bike_Code']
@@ -177,7 +176,6 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-
     return render_template("home.html")
 
 
@@ -199,12 +197,13 @@ def reservation():
         avail, bike_Num = available(user_date)
 
         if avail and (date > today):
-            reservation = [str(user_name).lower(), str(user_pname).lower(), str(user_date), str(dt.datetime.now()), str(bike_Num)]
+            reservation = [str(user_name).lower(), str(user_pname).lower(), str(user_date), str(dt.datetime.now()),
+                           str(bike_Num)]
             insertion(reservation)
             code = get_code(bike_Num)
             return validation(user_name, user_pname, user_date, bike_Num, code)
 
-        else :
+        else:
             return invalidation(user_date)
     else:
         return render_template("home.html")
@@ -245,26 +244,26 @@ def contact():
 
 
 @app.route("/<validation>")
-def validation(nm,pm,dt,bn,bc):
+def validation(nm, pm, dt, bn, bc):
     return f"""<p2>Demande de prêt enregistrée au nom de <I><B>{nm} {pm} </B> le <B>{dt}</B></I> <br> Le numéros du vélo est <B>{bn}<B><br> Le code du vélo est <B>{bc}<B></p2>""" \
            f""" <nav><ul><li><a href="/"> Home </a></li></ul></nav>"""
 
 
 @app.route("/<invalidation>")
 def invalidation(date):
-    return f"<p2>Pas de place pour cette date {date}, essayez une autre date svp</p2>"\
+    return f"<p2>Pas de place pour cette date {date}, essayez une autre date svp</p2>" \
            f""" <nav><ul><li><a href="/login"> Faire une réservation </a></li></ul></nav>"""
 
 
 @app.route("/<validation_suppression>")
 def validation_suppression():
-    return f"<p2>Le vélo a bien été rendu, au plaisir de vous revoir parmi nous ! \n Vous pouvez quitter la page ou revenir à l'accueil</p2>"\
+    return f"<p2>Le vélo a bien été rendu, au plaisir de vous revoir parmi nous ! \n Vous pouvez quitter la page ou revenir à l'accueil</p2>" \
            f"""<nav><ul><li><a href="/"> Retour à l'accueil </a></li></ul></nav>"""
 
 
 @app.route("/<invalidation_suppression>")
 def invalidation_suppression():
-    return f"<p2>La demande n'a pas abouti, les informations sont-elles valides ?</p2>"\
+    return f"<p2>La demande n'a pas abouti, les informations sont-elles valides ?</p2>" \
            f""" <nav><ul><li><a href="/logout"> Rendre un vélo </a></li></ul></nav>"""
 
 
