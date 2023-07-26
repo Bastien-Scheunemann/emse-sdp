@@ -1,3 +1,8 @@
+"""
+
+"""
+
+# Import required libraries
 from flask import Flask, redirect, url_for, render_template, request
 import gspread
 import pandas as pd
@@ -14,39 +19,50 @@ from google_auth_oauthlib.flow import Flow, InstalledAppFlow
 from googleapiclient.discovery import build
 
 
+# Function to create a Google API service
 def Create_Service(client_secret_file, api_name, api_version, *scopes):
+    # Print function arguments for debugging purposes
     print(client_secret_file, api_name, api_version, scopes, sep='-')
+
+    # Extracting the required values from the arguments
     CLIENT_SECRET_FILE = client_secret_file
     API_SERVICE_NAME = api_name
     API_VERSION = api_version
     SCOPES = [scope for scope in scopes[0]]
 
+    # Initialize credential variable
     cred = None
 
+    # Define the pickle file name based on the API service and version
     pickle_file = f'token_{API_SERVICE_NAME}_{API_VERSION}.pickle'
 
+    # Check if token exists and load it if available
     if os.path.exists(pickle_file):
         with open(pickle_file, 'rb') as token:
             cred = pickle.load(token)
 
+    # If no valid credentials found, create new ones
     if not cred or not cred.valid:
         if cred and cred.expired and cred.refresh_token:
+            # Refresh the credentials if expired and refresh token is available
             cred.refresh(Request())
         else:
+            # Run local server flow to authorize and get new credentials
             flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_FILE, SCOPES)
             cred = flow.run_local_server()
 
+        # Save the new credentials to the pickle file for future use
         with open(pickle_file, 'wb') as token:
             pickle.dump(cred, token)
 
     try:
+        # Build and return the Google API service
         service = build(API_SERVICE_NAME, API_VERSION, credentials=cred)
         print(API_SERVICE_NAME, 'service created successfully')
         return service
     except Exception as e:
         print(e)
     return None
-
 
 images_file_id = '1J6Cbzo3L4ZELWl-I4cQxOH93nqGSmvA5'
 
@@ -155,6 +171,7 @@ def get_code(bike_Num):
     return df['Bike_Code'][bike_Num]
 
 
+# Initialize the Flask app
 app = Flask(__name__)
 
 
