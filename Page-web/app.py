@@ -65,7 +65,7 @@ def Create_Service(client_secret_file, api_name, api_version, *scopes):
 # Global variable
 images_file_id = '1J6Cbzo3L4ZELWl-I4cQxOH93nqGSmvA5'
 
-Nombre_velo = 11
+Nombre_velo = 10
 
 # Define the required scope for Google Sheets and Google Drive APIs
 scope = ['https://www.googleapis.com/auth/spreadsheets', "https://www.googleapis.com/auth/drive.file",
